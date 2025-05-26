@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center">Register</h3>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <form method="POST" action="{{ url_for('register') }}">
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="user_type">Account Type</label>
+                            <select class="form-control" id="user_type" name="user_type" onchange="toggleDepartment()">
+                                <option value="user">Regular User</option>
+                                <option value="professor">Professor</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="department_group" style="display: none;">
+                            <label for="department">Department</label>
+                            <input type="text" class="form-control" id="department" name="department">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Register</button>
+                    </form>
+                    
+                    <div class="text-center mt-3">
+                        <p>Already have an account? <a href="{{ url_for('login') }}">Login here</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleDepartment() {
+    var userType = document.getElementById('user_type').value;
+    var departmentGroup = document.getElementById('department_group');
+    if (userType === 'professor') {
+        departmentGroup.style.display = 'block';
+        document.getElementById('department').required = true;
+    } else {
+        departmentGroup.style.display = 'none';
+        document.getElementById('department').required = false;
+    }
+}
+</script>
+{% endblock %} 

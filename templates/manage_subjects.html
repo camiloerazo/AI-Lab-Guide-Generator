@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Gestionar Materias | Guía de Laboratorio AI{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Gestionar Materias</h1>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver al Panel
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Formulario para Agregar Nueva Materia -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Agregar Nueva Materia</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('manage_subjects') }}" class="mb-4">
+                <input type="hidden" name="action" value="add_subject">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label for="subject_code" class="form-label">Código de la Materia</label>
+                        <input type="text" class="form-control" id="subject_code" name="subject_code" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="subject_name" class="form-label">Nombre de la Materia</label>
+                        <input type="text" class="form-control" id="subject_name" name="subject_name" required>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label for="credits" class="form-label">Créditos</label>
+                        <input type="number" class="form-control" id="credits" name="credits" min="1" max="10" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="description" class="form-label">Descripción</label>
+                        <input type="text" class="form-control" id="description" name="description">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success">Agregar Materia</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Materias Existentes -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Materias Existentes</h5>
+        </div>
+        <div class="card-body">
+            {% if subjects %}
+                {% for subject in subjects %}
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">{{ subject.code }} - {{ subject.name }}</h5>
+                            <button class="btn btn-primary btn-sm" type="button" 
+                                    data-bs-toggle="collapse" 
+                                    data-bs-target="#topics{{ subject.id }}">
+                                <i class="fas fa-book"></i> Gestionar Temas
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">{{ subject.description or 'Sin descripción.' }}</p>
+                        <p><strong>Créditos:</strong> {{ subject.credits }}</p>
+
+                        <!-- Sección de Temas Semanales -->
+                        <div class="collapse" id="topics{{ subject.id }}">
+                            <hr>
+                            <h6>Agregar Nuevo Tema Semanal</h6>
+                            <form method="POST" action="{{ url_for('manage_subjects') }}" class="mb-4">
+                                <input type="hidden" name="action" value="add_topic">
+                                <input type="hidden" name="subject_id" value="{{ subject.id }}">
+                                <div class="row">
+                                    <div class="col-md-2 mb-3">
+                                        <label for="week_number" class="form-label">Semana</label>
+                                        <input type="number" class="form-control" id="week_number" name="week_number" 
+                                               required min="1" max="16">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="topic_title" class="form-label">Título</label>
+                                        <input type="text" class="form-control" id="topic_title" name="topic_title" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="topic_description" class="form-label">Descripción</label>
+                                        <input type="text" class="form-control" id="topic_description" name="topic_description">
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-plus"></i> Agregar Tema
+                                </button>
+                            </form>
+
+                            <h6>Temas Semanales Existentes</h6>
+                            {% if subject.weekly_topics.count() > 0 %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Semana</th>
+                                                <th>Título</th>
+                                                <th>Descripción</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for topic in subject.weekly_topics.order_by(WeeklyTopic.week_number) %}
+                                            <tr>
+                                                <td>{{ topic.week_number }}</td>
+                                                <td>{{ topic.title }}</td>
+                                                <td>{{ topic.description or 'Sin descripción.' }}</td>
+                                                <td>
+                                                    <form method="POST" action="{{ url_for('manage_subjects') }}" 
+                                                          class="d-inline" 
+                                                          onsubmit="return confirm('¿Estás seguro de que deseas eliminar este tema?');">
+                                                        <input type="hidden" name="action" value="delete_topic">
+                                                        <input type="hidden" name="topic_id" value="{{ topic.id }}">
+                                                        <button type="submit" class="btn btn-danger btn-sm">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <p class="text-muted">No hay temas semanales definidos aún.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info">
+                    No has agregado ninguna materia aún. Usa el formulario de arriba para agregar tu primera materia.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Add Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %} 

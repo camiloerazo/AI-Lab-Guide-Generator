@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}{{ lab_guide.title }} | Guía de Laboratorio AI{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+            {% if current_user.user_type == 'professor' and lab_guide.subject in current_user.subjects %}
+            <div class="float-end">
+                <a href="{{ url_for('download_lab_guide_pdf', guide_id=lab_guide.id) }}" class="btn btn-primary me-2">
+                    <i class="fas fa-file-pdf"></i> Descargar PDF
+                </a>
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                    <i class="fas fa-trash"></i> Eliminar Guía
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    ¿Estás seguro de que deseas eliminar esta guía de laboratorio? Esta acción no se puede deshacer.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <form action="{{ url_for('delete_lab_guide', guide_id=lab_guide.id) }}" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-danger">Eliminar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lab Guide Content -->
+    <div class="card">
+        <div class="card-body">
+            <!-- Metadata -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5 class="card-title mb-3">{{ lab_guide.title }}</h5>
+                    <p class="mb-1">
+                        <strong>Materia:</strong> {{ lab_guide.subject.code }} - {{ lab_guide.subject.name }}
+                    </p>
+                    <p class="mb-1">
+                        <strong>Tema:</strong> {{ lab_guide.weekly_topic.title }}
+                    </p>
+                    <p class="mb-1">
+                        <strong>Número de Laboratorio:</strong> {{ lab_guide.lab_number }}
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-end">
+                        <span class="badge {% if lab_guide.status == 'published' %}bg-success{% else %}bg-warning{% endif %} me-2">
+                            {{ 'Publicado' if lab_guide.status == 'published' else 'Borrador' }}
+                        </span>
+                        <span class="badge bg-info me-2">
+                            {% if lab_guide.difficulty_level == 'beginner' %}
+                                Principiante
+                            {% elif lab_guide.difficulty_level == 'intermediate' %}
+                                Intermedio
+                            {% else %}
+                                Avanzado
+                            {% endif %}
+                        </span>
+                        {% if lab_guide.estimated_duration %}
+                            <span class="badge bg-secondary">
+                                {{ lab_guide.estimated_duration }} minutos
+                            </span>
+                        {% endif %}
+                    </div>
+                    {% if lab_guide.laboratory %}
+                        <p class="text-end mt-2 mb-0">
+                            <strong>Laboratorio:</strong> {{ lab_guide.laboratory.name }}
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="lab-guide-content">
+                {{ lab_guide.content|safe }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .lab-guide-content {
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+
+    .lab-guide-content h1 {
+        font-size: 2rem;
+        color: #2c3e50;
+        margin-top: 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 0.5rem;
+    }
+
+    .lab-guide-content h2 {
+        font-size: 1.75rem;
+        color: #34495e;
+        margin-top: 1.75rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .lab-guide-content h3 {
+        font-size: 1.5rem;
+        color: #2c3e50;
+        margin-top: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .lab-guide-content p {
+        margin-bottom: 1rem;
+        text-align: justify;
+    }
+
+    .lab-guide-content ul, .lab-guide-content ol {
+        margin-bottom: 1.5rem;
+        padding-left: 2rem;
+    }
+
+    .lab-guide-content li {
+        margin-bottom: 0.5rem;
+    }
+
+    .lab-guide-content code {
+        background-color: #f8f9fa;
+        padding: 0.2rem 0.4rem;
+        border-radius: 0.25rem;
+        font-family: 'Courier New', Courier, monospace;
+    }
+
+    .lab-guide-content pre {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin: 1rem 0;
+        overflow-x: auto;
+    }
+
+    .lab-guide-content pre code {
+        background-color: transparent;
+        padding: 0;
+    }
+
+    .lab-guide-content table {
+        width: 100%;
+        margin: 1.5rem 0;
+        border-collapse: collapse;
+    }
+
+    .lab-guide-content th, .lab-guide-content td {
+        padding: 0.75rem;
+        border: 1px solid #dee2e6;
+    }
+
+    .lab-guide-content th {
+        background-color: #f8f9fa;
+        font-weight: bold;
+    }
+
+    .lab-guide-content blockquote {
+        border-left: 4px solid #3498db;
+        padding-left: 1rem;
+        margin: 1.5rem 0;
+        color: #666;
+    }
+
+    .lab-guide-content img {
+        max-width: 100%;
+        height: auto;
+        margin: 1.5rem 0;
+        border-radius: 0.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .lab-guide-content {
+            font-size: 1rem;
+        }
+
+        .lab-guide-content h1 {
+            font-size: 1.75rem;
+        }
+
+        .lab-guide-content h2 {
+            font-size: 1.5rem;
+        }
+
+        .lab-guide-content h3 {
+            font-size: 1.25rem;
+        }
+    }
+</style>
+{% endblock %} 

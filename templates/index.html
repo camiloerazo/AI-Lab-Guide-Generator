@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio | Guías de Laboratorio IA{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col text-center">
+            <h1 class="display-4">Bienvenido a Guías de Laboratorio de IA</h1>
+            <p class="lead">Explora, aprende y crea guías de laboratorio sobre Inteligencia Artificial y Ciencia de Datos.</p>
+        </div>
+    </div>
+    <div class="row mb-5">
+        <div class="col-md-8 mx-auto">
+            <div class="alert alert-info text-center">
+                ¿Nuevo aquí? <a href="{{ url_for('register') }}" class="alert-link">Regístrate</a> o <a href="{{ url_for('login') }}" class="alert-link">inicia sesión</a> para comenzar a crear y explorar guías.
+            </div>
+        </div>
+    </div>
+    <h2 class="mb-4 text-center">Temas Populares de Laboratorio IA</h2>
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        <div class="col">
+            <div class="card h-100 shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Redes Neuronales</h5>
+                    <p class="card-text">Aprende a construir y entrenar redes neuronales artificiales para tareas de clasificación y regresión.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Visión por Computador</h5>
+                    <p class="card-text">Explora técnicas de procesamiento de imágenes, reconocimiento de objetos y aplicaciones de visión artificial.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Procesamiento de Lenguaje Natural</h5>
+                    <p class="card-text">Descubre cómo las máquinas entienden y generan lenguaje humano usando modelos de NLP.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Aprendizaje Supervisado</h5>
+                    <p class="card-text">Implementa algoritmos de clasificación y regresión para resolver problemas reales con datos etiquetados.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Aprendizaje No Supervisado</h5>
+                    <p class="card-text">Agrupa, reduce dimensiones y encuentra patrones ocultos en conjuntos de datos sin etiquetas.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Robótica e IA</h5>
+                    <p class="card-text">Integra algoritmos de IA en sistemas robóticos para percepción, planeación y control autónomo.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-5">
+        <div class="col text-center">
+            <p class="text-muted">Desarrollado para la comunidad educativa de IA &copy; {{ 2025 }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %} 

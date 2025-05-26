@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Panel de Control | Guía de Laboratorio AI{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Panel de Control</h1>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="row">
+        <!-- Acciones Rápidas -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Acciones Rápidas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="{{ url_for('create_lab_guide') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-plus-circle"></i> Crear Nueva Guía
+                        </a>
+                        {% if current_user.user_type == 'professor' %}
+                            <a href="{{ url_for('manage_subjects') }}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-book"></i> Gestionar Materias
+                            </a>
+                        {% endif %}
+                        <a href="{{ url_for('edit_account') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-user-cog"></i> Editar Cuenta
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información de Usuario -->
+        <div class="col-md-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Información de la Cuenta</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Usuario:</strong> {{ current_user.username }}</p>
+                            <p><strong>Correo:</strong> {{ current_user.email }}</p>
+                            {% if current_user.user_type == 'professor' %}
+                                <p><strong>Departamento:</strong> {{ current_user.department }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Tipo de Cuenta:</strong> {{ 'Profesor' if current_user.user_type == 'professor' else 'Estudiante' }}</p>
+                            <p><strong>Miembro desde:</strong> {{ current_user.created_at.strftime('%d/%m/%Y') if current_user.created_at else 'N/A' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if current_user.user_type == 'professor' %}
+    <!-- Sección de Materias del Profesor -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Tus Materias</h5>
+                    <a href="{{ url_for('manage_subjects') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-edit"></i> Gestionar Materias
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if subjects %}
+                        <div class="row">
+                            {% for subject in subjects %}
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">{{ subject.code }} - {{ subject.name }}</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="card-text">{{ subject.description or 'Sin descripción.' }}</p>
+                                        <p><strong>Créditos:</strong> {{ subject.credits }}</p>
+                                        
+                                        <!-- Temas Semanales Acordeón -->
+                                        <div class="accordion" id="topicsAccordion{{ subject.id }}">
+                                            <div class="accordion-item">
+                                                <h2 class="accordion-header">
+                                                    <button class="accordion-button collapsed" type="button" 
+                                                            data-bs-toggle="collapse" 
+                                                            data-bs-target="#topicsCollapse{{ subject.id }}">
+                                                        Temas Semanales
+                                                    </button>
+                                                </h2>
+                                                <div id="topicsCollapse{{ subject.id }}" 
+                                                     class="accordion-collapse collapse" 
+                                                     data-bs-parent="#topicsAccordion{{ subject.id }}">
+                                                    <div class="accordion-body">
+                                                        {% if subject.weekly_topics.count() > 0 %}
+                                                            <div class="list-group">
+                                                                {% for topic in subject.weekly_topics.order_by(WeeklyTopic.week_number) %}
+                                                                <div class="list-group-item">
+                                                                    <h6 class="mb-1">Semana {{ topic.week_number }}: {{ topic.title }}</h6>
+                                                                    <p class="mb-1 small">{{ topic.description or 'Sin descripción.' }}</p>
+                                                                </div>
+                                                                {% endfor %}
+                                                            </div>
+                                                        {% else %}
+                                                            <p class="text-muted">No hay temas semanales definidos aún.</p>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Resumen de Guías -->
+                                        <div class="mt-3">
+                                            <h6>Guías de Laboratorio</h6>
+                                            {% set lab_guides = subject.lab_guides.all() %}
+                                            {% if lab_guides %}
+                                                <div class="list-group">
+                                                    {% for guide in lab_guides %}
+                                                    <div class="list-group-item">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div>
+                                                                <h6 class="mb-1">Laboratorio {{ guide.lab_number }}: {{ guide.title }}</h6>
+                                                                <p class="mb-1 small">
+                                                                    <span class="badge bg-{{ 'success' if guide.is_published else 'warning' }}">
+                                                                        {{ 'Publicado' if guide.is_published else 'Borrador' }}
+                                                                    </span>
+                                                                    <span class="badge bg-info">{{ 
+                                                                        'Principiante' if guide.difficulty_level == 'beginner'
+                                                                        else 'Intermedio' if guide.difficulty_level == 'intermediate'
+                                                                        else 'Avanzado'
+                                                                    }}</span>
+                                                                    {% if guide.estimated_duration %}
+                                                                        <span class="badge bg-secondary">{{ guide.estimated_duration }} min</span>
+                                                                    {% endif %}
+                                                                </p>
+                                                            </div>
+                                                            <a href="{{ url_for('view_lab_guide', guide_id=guide.id) }}" 
+                                                               class="btn btn-sm btn-primary">
+                                                                <i class="fas fa-eye"></i> Ver Guía
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                    {% endfor %}
+                                                </div>
+                                            {% else %}
+                                                <p class="text-muted">No hay guías de laboratorio creadas aún.</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            No has agregado ninguna materia aún. 
+                            <a href="{{ url_for('manage_subjects') }}" class="alert-link">Haz clic aquí</a> para agregar tu primera materia.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Add Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %} 

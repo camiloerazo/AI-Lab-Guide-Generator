@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Crear Guía de Laboratorio | Guía de Laboratorio AI{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Crear Nueva Guía de Laboratorio</h1>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver al Panel
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('create_lab_guide') }}">
+                <!-- Selección de Materia y Tema -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label for="subject_id" class="form-label">Materia</label>
+                        <select class="form-select" id="subject_id" name="subject_id" required>
+                            <option value="">Seleccionar materia...</option>
+                            {% for subject in subjects %}
+                            <option value="{{ subject.id }}">{{ subject.code }} - {{ subject.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="weekly_topic_id" class="form-label">Tema Semanal</label>
+                        <select class="form-select" id="weekly_topic_id" name="weekly_topic_id" required disabled>
+                            <option value="">Primero selecciona una materia...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Información Básica de la Guía -->
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <label for="title" class="form-label">Título de la Guía</label>
+                        <input type="text" class="form-control" id="title" name="title" required
+                               placeholder="Ej: Introducción a los Circuitos Eléctricos">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="lab_number" class="form-label">Número de Laboratorio</label>
+                        <input type="number" class="form-control" id="lab_number" name="lab_number" required
+                               min="1" max="99" placeholder="Ej: 1">
+                    </div>
+                </div>
+
+                <!-- Nivel de Dificultad y Duración -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label for="difficulty_level" class="form-label">Nivel de Dificultad</label>
+                        <select class="form-select" id="difficulty_level" name="difficulty_level" required>
+                            <option value="beginner">Principiante</option>
+                            <option value="intermediate">Intermedio</option>
+                            <option value="advanced">Avanzado</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="estimated_duration" class="form-label">Duración Estimada (minutos)</label>
+                            <input type="number" class="form-control" id="estimated_duration" name="estimated_duration" required min="30" max="240">
+                            <div class="form-text">Ingrese la duración estimada en minutos (entre 30 y 240 minutos)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notas Adicionales -->
+                <div class="mb-3">
+                    <label for="additional_notes" class="form-label">Notas Adicionales</label>
+                    <textarea class="form-control" id="additional_notes" name="additional_notes" rows="4" placeholder="Ingrese cualquier nota adicional o instrucción específica para la generación de la guía..."></textarea>
+                    <div class="form-text">Opcional: Incluya cualquier información adicional que desee que la IA considere al generar la guía</div>
+                </div>
+
+                <!-- Selección de Laboratorio (Opcional) -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label for="laboratory_id" class="form-label">Laboratorio (Opcional)</label>
+                        <select class="form-select" id="laboratory_id" name="laboratory_id">
+                            <option value="">Seleccione un laboratorio (opcional)</option>
+                            {% for lab in laboratories %}
+                            <option value="{{ lab.id }}">{{ lab.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-robot me-2"></i>Generar Guía con IA
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript para cargar temas semanales dinámicamente -->
+<script>
+document.getElementById('subject_id').addEventListener('change', function() {
+    const subjectId = this.value;
+    const topicSelect = document.getElementById('weekly_topic_id');
+    
+    // Resetear el select de temas
+    topicSelect.innerHTML = '<option value="">Cargando temas...</option>';
+    topicSelect.disabled = true;
+    
+    if (subjectId) {
+        // Hacer la petición al servidor para obtener los temas
+        fetch(`/api/subjects/${subjectId}/weekly-topics`)
+            .then(response => response.json())
+            .then(data => {
+                topicSelect.innerHTML = '<option value="">Seleccionar tema semanal...</option>';
+                data.forEach(topic => {
+                    const option = document.createElement('option');
+                    option.value = topic.id;
+                    option.textContent = `Semana ${topic.week_number}: ${topic.title}`;
+                    topicSelect.appendChild(option);
+                });
+                topicSelect.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                topicSelect.innerHTML = '<option value="">Error al cargar los temas</option>';
+            });
+    } else {
+        topicSelect.innerHTML = '<option value="">Primero selecciona una materia...</option>';
+    }
+});
+</script>
+
+<!-- Add Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %} 
