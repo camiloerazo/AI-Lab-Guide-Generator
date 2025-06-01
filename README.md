@@ -6,7 +6,7 @@
 
 Lab Guide AI is a sophisticated full-stack web application designed to revolutionize the creation and management of laboratory guides for educational institutions. Leveraging the power of artificial intelligence and modern web technologies, this system streamlines the process of generating, managing, and distributing laboratory guides while maintaining high educational standards.
 
-## ✨ Key Features
+## ✨ Key Features 
 
 - 🤖 **AI-Powered Guide Generation**
   - Utilizes OpenRouter's Llama Maverick model for intelligent content generation
